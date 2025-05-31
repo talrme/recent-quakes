@@ -1,0 +1,643 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+#map {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1002;
+}
+
+.control-group {
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.control-group:last-child {
+    margin-bottom: 0;
+}
+
+.controls-footer {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+    text-align: center;
+}
+
+.recent-earthquakes-link {
+    display: inline-block;
+    color: #0066cc;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #f5f5f5;
+    transition: all 0.2s;
+    font-size: 0.8em;
+    line-height: 1.2;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.recent-earthquakes-link:hover {
+    background: #e3f2fd;
+    color: #1976d2;
+    text-decoration: underline;
+}
+
+label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: bold;
+    color: #333;
+    font-size: 0.9em;
+}
+
+input[type="range"] {
+    width: 200px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/* Custom popup styles */
+.earthquake-popup {
+    font-family: Arial, sans-serif;
+    min-width: 250px;
+}
+
+.earthquake-popup h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 1.1em;
+    font-weight: 600;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+.earthquake-popup p {
+    margin: 6px 0;
+    color: #666;
+    font-size: 0.95em;
+    line-height: 1.4;
+}
+
+.earthquake-popup a {
+    color: #0066cc;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.earthquake-popup a:hover {
+    color: #004499;
+    text-decoration: underline;
+}
+
+/* Custom marker styles */
+.earthquake-marker {
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Legend styles */
+.legend {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    line-height: 1.5;
+    color: #333;
+    z-index: 1001;
+}
+
+.legend h4 {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin: 3px 0;
+    font-size: 12px;
+}
+
+.legend-item i {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+    border: 1px solid #fff;
+    display: inline-block;
+}
+
+/* Stats box styles */
+.stats-box {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    min-width: 250px;
+    max-width: 300px;
+    z-index: 1001;
+}
+
+.stats-box h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 5px;
+}
+
+.stats-content {
+    font-size: 13px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin: 8px 0;
+    line-height: 1.4;
+}
+
+.stat-label {
+    color: #666;
+    margin-right: 10px;
+}
+
+.stat-value {
+    font-weight: bold;
+    color: #333;
+}
+
+.stat-location {
+    font-size: 12px;
+    text-align: right;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+/* Clickable stat value */
+.stat-value.clickable {
+    cursor: pointer;
+    color: #0066cc;
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+
+.stat-value.clickable:hover {
+    color: #004499;
+}
+
+/* Pulsing marker effect */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4);
+    }
+    70% {
+        transform: scale(1.2);
+        box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+    }
+}
+
+.pulsing-marker {
+    animation: pulse 1.5s infinite;
+    z-index: 1000 !important;
+}
+
+/* Recent Earthquakes Popup */
+.recent-earthquakes-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    max-width: 90%;
+    width: 400px;
+    height: 80vh;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease-in-out;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Minimized state */
+.recent-earthquakes-popup.minimized {
+    width: 300px;
+    height: 80vh;
+    left: auto;
+    right: 20px;
+    transform: translateY(-50%);
+    opacity: 0.85;
+    margin-right: 0;
+    top: calc(50% - 100px); /* Changed from +50px to -100px to move it up */
+}
+
+/* Responsive adjustments for minimized state */
+@media screen and (max-width: 768px) {
+    .recent-earthquakes-popup.minimized {
+        width: 250px;
+        right: 10px;
+        top: calc(50% - 80px); /* Changed from +30px to -80px to move it up */
+    }
+}
+
+.recent-earthquakes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    flex-shrink: 0;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.header-left {
+    flex: 1;
+    text-align: left;
+}
+
+.header-left h3 {
+    font-size: 1.2em;
+    margin: 0;
+    color: #333;
+    font-weight: 600;
+}
+
+.header-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.sort-controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.sort-button {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.9em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+}
+
+.sort-button:hover {
+    background: #eee;
+}
+
+.sort-button.active {
+    background: #e3f2fd;
+    border-color: #2196f3;
+    color: #1976d2;
+}
+
+.sort-icon {
+    font-size: 1.1em;
+}
+
+.minimize-button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.minimize-button:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+/* Update list styles for minimized state */
+.recent-earthquakes-popup.minimized .recent-earthquake-item {
+    padding: 6px 8px;
+}
+
+.recent-earthquakes-popup.minimized .recent-earthquake-magnitude {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85em;
+}
+
+.recent-earthquakes-popup.minimized .recent-earthquake-place {
+    font-size: 0.9em;
+}
+
+.recent-earthquakes-popup.minimized .recent-earthquake-time {
+    font-size: 0.8em;
+}
+
+/* Ensure the list scrolls properly in both states */
+.recent-earthquakes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    padding-right: 10px;
+    margin-right: -10px;
+    height: calc(80vh - 120px);
+    flex-grow: 1;
+}
+
+/* Customize scrollbar for better visibility */
+.recent-earthquakes-list::-webkit-scrollbar {
+    width: 10px;
+}
+
+.recent-earthquakes-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 5px;
+}
+
+.recent-earthquakes-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 5px;
+    border: 2px solid #f1f1f1;
+}
+
+.recent-earthquakes-list::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+.recent-earthquake-item {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border: 1px solid #eee;
+    background: white;
+}
+
+.recent-earthquake-item:hover {
+    background-color: #f8f8f8;
+}
+
+.recent-earthquake-magnitude {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    margin-right: 12px;
+    flex-shrink: 0;
+    font-size: 0.9em;
+}
+
+.recent-earthquake-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.recent-earthquake-place {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.95em;
+}
+
+.recent-earthquake-time {
+    font-size: 0.85em;
+    color: #666;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.close-button:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+/* Remove the overlay from the popup itself */
+.recent-earthquakes-popup::before {
+    display: none;
+}
+
+/* Update overlay behavior */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    transition: opacity 0.3s ease-in-out;
+    opacity: 1;
+    pointer-events: none;
+}
+
+/* Make sure the popup itself can receive clicks */
+.recent-earthquakes-popup {
+    pointer-events: auto;
+}
+
+/* Ensure controls stay above everything */
+.controls {
+    z-index: 1002;
+    right: 20px;
+    max-width: calc(100% - 40px);
+}
+
+@media screen and (max-width: 768px) {
+    .controls {
+        right: 10px;
+        max-width: calc(100% - 20px);
+    }
+}
+
+/* Make sure stats box stays above everything */
+.stats-box {
+    z-index: 1002;
+}
+
+/* Make sure legend stays above everything */
+.legend {
+    z-index: 1002;
+}
+
+.sort-toggle {
+    margin-top: 6px;
+}
+
+.sort-toggle-track {
+    display: inline-flex;
+    background: #f0f0f0;
+    border-radius: 16px;
+    padding: 2px;
+    position: relative;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.sort-toggle-option {
+    border: none;
+    background: none;
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 0.85em;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+    z-index: 1;
+}
+
+.sort-toggle-option:hover {
+    color: #333;
+}
+
+.sort-toggle-option.active {
+    color: #fff;
+    background: #2196f3;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.sort-toggle-option .sort-icon {
+    font-size: 1em;
+}
+
+/* Map Title */
+.map-title-container {
+    position: absolute;
+    left: 60px;
+    top: 0;
+    z-index: 1000;
+    width: 240px;
+}
+
+.map-title {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px 16px;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(4px);
+    width: 100%;
+    justify-content: center;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+.map-title:hover {
+    background: rgba(255, 255, 255, 0.98);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+.title-icon {
+    font-size: 1.3em;
+    line-height: 1;
+}
+
+.title-text {
+    background: linear-gradient(45deg, #2c3e50, #3498db);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+/* When popup is minimized, ensure it doesn't overlap with controls */
+.recent-earthquakes-popup.minimized {
+    top: calc(50% + 100px);
+}
+
+@media screen and (max-width: 768px) {
+    .recent-earthquakes-popup.minimized {
+        top: calc(50% + 80px);
+    }
+} 
